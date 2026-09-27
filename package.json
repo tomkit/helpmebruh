@@ -28,6 +28,7 @@
   },
   "dependencies": {
     "@composio/core": "^0.21.0",
+    "@modelcontextprotocol/client": "^2.1.0",
     "agent-browser": "0.38.1",
     "ai": "^7.0.116",
     "eve": "0.67.1",

@@ -6,6 +6,7 @@ import { defineTool } from "eve/tools";
 import { z } from "zod";
 
 import { claude, codex, discoverCapabilities } from "../lib/plugins";
+import { getSettings } from "../lib/settings";
 
 export default defineTool({
   description:
@@ -20,6 +21,7 @@ export default defineTool({
   label: { start: ({ runtime, capability }) => `Use ${capability} through ${runtime}` },
   async execute({ runtime, capability, task }, ctx) {
     if (ctx.session.auth.current?.attributes.role !== "owner") throw new Error("Only the owner can use installed capabilities.");
+    if (!getSettings().capabilities.delegationEnabled) throw new Error("Capability delegation is off in Bruh Admin.");
     const found = (await discoverCapabilities()).find(c => c.runtime === runtime && c.id === capability);
     if (!found) throw new Error(`${capability} is not installed for ${runtime}. Refresh Bruh Admin's capability list.`);
     const scratch = await mkdtemp(join(tmpdir(), "bruh-capability-"));

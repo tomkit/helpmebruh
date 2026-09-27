@@ -153,7 +153,12 @@ Fresh installs default to the ChatGPT subscription path. Existing installs creat
 
 ## Plugins and capabilities
 
-Open [Bruh Admin](http://localhost:2000/admin) and use **Capabilities & plugins**. It discovers enabled plugins, skills, and MCP servers from your existing Codex and Claude Code setups. Click **Refresh capabilities** to see new installs. Bruh checks the live inventory before use and starts a fresh local CLI session for each request, so no Bruh rebuild or restart is needed. A plugin's own login or account setup may still be required.
+Open [Bruh Admin](http://localhost:2000/admin) and use **Capabilities & plugins**. It discovers enabled plugins, skills, and MCP servers from your existing Codex and Claude Code setups. Click **Refresh capabilities** to see new installs. The two switches are independent:
+
+- **Inherit local capabilities in Bruh:** Eve reads existing skill files on each turn and loads their instructions and text resources into its own skill system. It calls supported local stdio MCP servers directly. No persistent copy or symlink is needed. Eve's Linux sandbox cannot follow a symlink to Mac files.
+- **Delegate to Codex or Claude Code:** Bruh starts a fresh CLI session for a capability that needs its original harness, including remote OAuth MCP servers and plugin features Eve cannot load directly.
+
+Both paths read current installs without a Bruh rebuild or restart. Inheritance is off by default; delegation stays on for existing installs. A plugin's own login or account setup may still be required. Project-scoped Claude plugins stay scoped to their project; they are available through delegation from that project, not inherited globally.
 
 To add a Codex plugin there, enter a trusted GitHub marketplace (`owner/repo`), then install `name@marketplace`. It installs into your Mac's regular `~/.codex` profile. Plugins can access local files or connected services, so choose sources you trust.
 

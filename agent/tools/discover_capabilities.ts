@@ -2,6 +2,7 @@ import { defineTool } from "eve/tools";
 import { z } from "zod";
 
 import { discoverCapabilities } from "../lib/plugins";
+import { getSettings } from "../lib/settings";
 
 export default defineTool({
   description:
@@ -10,6 +11,6 @@ export default defineTool({
   inputSchema: z.object({}),
   async execute(_input, ctx) {
     if (ctx.session.auth.current?.attributes.role !== "owner") throw new Error("Only the owner can inspect installed capabilities.");
-    return { capabilities: await discoverCapabilities() };
+    return { settings: getSettings().capabilities, capabilities: await discoverCapabilities() };
   },
 });

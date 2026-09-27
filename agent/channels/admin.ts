@@ -184,11 +184,15 @@ const PAGE = /* html */ `<!doctype html>
         <input type="text" id="codingRoot" name="codingRoot" required></div>
       <div class="row"><div><label for="codingDefault">Default coding agent</label><div class="help">Used unless a request asks for a specific one.</div></div>
         <select id="codingDefault" name="codingDefault"><option value="claude">Claude Code</option><option value="codex">Codex</option></select></div>
+      <div class="row"><div><label for="capabilityDelegation">Delegate installed capabilities</label><div class="help">Run a fresh Codex or Claude Code session for plugins that need their original harness. Coding tasks have their own switch above.</div></div>
+        <input type="checkbox" class="switch" id="capabilityDelegation" name="capabilityDelegation"></div>
+      <div class="row"><div><label for="capabilityInherit">Inherit local capabilities in Bruh</label><div class="help">Load existing skill files into Eve and call supported local MCP servers directly. Reads current files each turn; no restart needed.</div></div>
+        <input type="checkbox" class="switch" id="capabilityInherit" name="capabilityInherit"></div>
     </section>
   </form>
   <section>
     <h2>Capabilities &amp; plugins</h2>
-    <p class="help">Bruh discovers your installed Codex and Claude Code plugins, skills, and MCP servers live. Plugins can access local files and connected services. Install sources you trust.</p>
+    <p class="help">Bruh reads your installed Codex and Claude Code capabilities live. Inherited skills load in Eve; local MCP servers run directly. Remote OAuth servers and harness-only features use delegation when enabled. Install sources you trust.</p>
     <form class="plugin-form" id="marketplaceForm"><input type="text" id="marketplace" required placeholder="GitHub owner/repo" aria-label="GitHub marketplace repository"><button type="submit">Add marketplace</button></form>
     <form class="plugin-form" id="pluginForm"><input type="text" id="plugin" required placeholder="plugin@marketplace" aria-label="Plugin name"><button type="submit" class="primary">Install plugin</button></form>
     <button type="button" id="refreshPlugins">Refresh capabilities</button>
@@ -220,6 +224,8 @@ function fill(s) {
   $("codingEnabled").checked = s.codingAgent.enabled;
   $("codingRoot").value = s.codingAgent.root;
   $("codingDefault").value = s.codingAgent.defaultAgent;
+  $("capabilityDelegation").checked = s.capabilities.delegationEnabled;
+  $("capabilityInherit").checked = s.capabilities.inheritEnabled;
 }
 
 function read() {
@@ -232,6 +238,7 @@ function read() {
     modelProvider: $("modelProvider").value, model: $("model").value, imageModel: $("imageModel").value, visionModel: $("visionModel").value,
     sandboxInternet: $("sandboxInternet").checked, browserProfile: $("browserProfile").value,
     codingAgent: { enabled: $("codingEnabled").checked, root: $("codingRoot").value, defaultAgent: $("codingDefault").value },
+    capabilities: { delegationEnabled: $("capabilityDelegation").checked, inheritEnabled: $("capabilityInherit").checked },
   };
 }
 
@@ -254,7 +261,7 @@ async function loadPlugins() {
     for (const runtime of ["codex", "claude"]) {
       lines.push("\\n" + (runtime === "codex" ? "Codex" : "Claude Code") + ":");
       const found = data.capabilities.filter(c => c.runtime === runtime);
-      lines.push(...(found.length ? found.map(c => "• " + c.id + " (" + c.kind + ")" + (c.skills?.length ? " · skills: " + c.skills.join(", ") : "") + (c.mcpServers?.length ? " · MCP: " + c.mcpServers.join(", ") : "") + (c.scope === "project" ? " · project only" : "")) : ["None found"]));
+      lines.push(...(found.length ? found.map(c => "• " + c.id + " (" + c.kind + (c.kind === "mcp" ? c.direct ? ", direct" : ", delegation" : "") + ")" + (c.skills?.length ? " · skills: " + c.skills.join(", ") : "") + (c.mcpServers?.length ? " · MCP: " + c.mcpServers.join(", ") : "") + (c.scope === "project" ? " · project only" : "")) : ["None found"]));
     }
     $("pluginList").textContent = lines.join("\\n");
   } catch (e) { $("pluginList").textContent = "Could not load plugins: " + e.message; }

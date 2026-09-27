@@ -28,6 +28,10 @@ export const settingsSchema = z.object({
   // Tools
   sandboxInternet: z.boolean().default(true),
   browserProfile: z.string().trim().min(1).default("Default"),
+  capabilities: z.object({
+    delegationEnabled: z.boolean().default(true),
+    inheritEnabled: z.boolean().default(false),
+  }).default({ delegationEnabled: true, inheritEnabled: false }),
   codingAgent: z
     .object({
       enabled: z.boolean().default(true),
