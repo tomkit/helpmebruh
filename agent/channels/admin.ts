@@ -3,8 +3,9 @@
 // addressed to localhost (blocks DNS rebinding), and the settings API requires
 // a custom header plus a same-origin Origin, which other websites can't send
 // without a CORS preflight this server never approves. Fails closed.
-import { defineChannel, GET, PUT } from "eve/channels";
+import { defineChannel, GET, POST, PUT } from "eve/channels";
 
+import { codex, discoverCapabilities, validMarketplace, validPlugin } from "../lib/plugins";
 import { getSettings, saveSettings } from "../lib/settings";
 
 const LOCAL_HOSTS = new Set(["localhost", "127.0.0.1", "[::1]"]);
@@ -44,6 +45,36 @@ export default defineChannel({
       if (!isApiCall(request)) return forbidden();
       try {
         return Response.json(saveSettings(await request.json()));
+      } catch (err) {
+        return Response.json({ error: err instanceof Error ? err.message : String(err) }, { status: 400 });
+      }
+    }),
+
+    GET("/admin/api/plugins", async (request) => {
+      if (!isApiCall(request)) return forbidden();
+      try {
+        const [marketplaces, capabilities] = await Promise.all([
+          codex(["plugin", "marketplace", "list", "--json"]), discoverCapabilities(),
+        ]);
+        return Response.json({ marketplaces: JSON.parse(marketplaces).marketplaces, capabilities });
+      } catch (err) {
+        return Response.json({ error: err instanceof Error ? err.message : String(err) }, { status: 500 });
+      }
+    }),
+
+    POST("/admin/api/plugins", async (request) => {
+      if (!isApiCall(request)) return forbidden();
+      try {
+        const body = await request.json() as { kind?: string; value?: string };
+        let args: string[];
+        if (body.kind === "marketplace" && validMarketplace(body.value)) {
+          args = ["plugin", "marketplace", "add", body.value, "--json"];
+        } else if (body.kind === "plugin" && validPlugin(body.value)) {
+          args = ["plugin", "add", body.value, "--json"];
+        } else {
+          return Response.json({ error: "Enter a GitHub owner/repo or a plugin name@marketplace." }, { status: 400 });
+        }
+        return Response.json(JSON.parse(await codex(args)));
       } catch (err) {
         return Response.json({ error: err instanceof Error ? err.message : String(err) }, { status: 400 });
       }
@@ -88,6 +119,9 @@ const PAGE = /* html */ `<!doctype html>
   textarea { min-height: 72px; resize: vertical; }
   input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
   .switch { justify-self: end; width: 44px; height: 26px; accent-color: var(--accent); }
+  .plugin-form { display: flex; gap: 8px; padding: 12px 0; border-top: 1px solid var(--line); }
+  .plugin-form input { flex: 1; min-width: 0; }
+  .plugin-list { color: var(--muted); font-size: 13px; padding: 0 0 14px; overflow-wrap: anywhere; white-space: pre-line; }
   .bar { position: fixed; left: 0; right: 0; bottom: 0; background: var(--card); border-top: 1px solid var(--line); }
   .bar div { max-width: 760px; margin: 0 auto; padding: 12px 16px; display: flex; gap: 12px; align-items: center; justify-content: flex-end; }
   #status { margin-right: auto; color: var(--muted); font-size: 14px; }
@@ -152,6 +186,14 @@ const PAGE = /* html */ `<!doctype html>
         <select id="codingDefault" name="codingDefault"><option value="claude">Claude Code</option><option value="codex">Codex</option></select></div>
     </section>
   </form>
+  <section>
+    <h2>Capabilities &amp; plugins</h2>
+    <p class="help">Bruh discovers your installed Codex and Claude Code plugins, skills, and MCP servers live. Plugins can access local files and connected services. Install sources you trust.</p>
+    <form class="plugin-form" id="marketplaceForm"><input type="text" id="marketplace" required placeholder="GitHub owner/repo" aria-label="GitHub marketplace repository"><button type="submit">Add marketplace</button></form>
+    <form class="plugin-form" id="pluginForm"><input type="text" id="plugin" required placeholder="plugin@marketplace" aria-label="Plugin name"><button type="submit" class="primary">Install plugin</button></form>
+    <button type="button" id="refreshPlugins">Refresh capabilities</button>
+    <div class="plugin-list" id="pluginList">Loading capabilities…</div>
+  </section>
   <datalist id="models"><option value="gpt-6-luna-fast"><option value="gpt-5.6-codex"><option value="claude-sonnet-5"><option value="claude-opus-5.5"><option value="zai/glm-5.3"><option value="anthropic/claude-sonnet-5"></datalist>
   <datalist id="vision"><option value="google/gemini-3.8-flash"><option value="google/gemini-3.5-flash"><option value="zai/glm-5v-turbo"></datalist>
 </main>
@@ -161,6 +203,10 @@ const PAGE = /* html */ `<!doctype html>
 <script>
 const $ = (id) => document.getElementById(id);
 const api = (method, body) => fetch("/admin/api/settings", {
+  method, headers: { "x-admin-request": "1", "content-type": "application/json" },
+  body: body && JSON.stringify(body),
+}).then(async (r) => { const j = await r.json().catch(() => ({})); if (!r.ok) throw new Error(j.error || r.statusText); return j; });
+const pluginApi = (method, body) => fetch("/admin/api/plugins", {
   method, headers: { "x-admin-request": "1", "content-type": "application/json" },
   body: body && JSON.stringify(body),
 }).then(async (r) => { const j = await r.json().catch(() => ({})); if (!r.ok) throw new Error(j.error || r.statusText); return j; });
@@ -201,7 +247,35 @@ $("form").addEventListener("submit", async (e) => {
   finally { $("save").disabled = false; }
 });
 $("revert").addEventListener("click", load);
+async function loadPlugins() {
+  try {
+    const data = await pluginApi("GET");
+    const lines = ["Codex marketplaces: " + data.marketplaces.map(m => m.name).join(", ")];
+    for (const runtime of ["codex", "claude"]) {
+      lines.push("\\n" + (runtime === "codex" ? "Codex" : "Claude Code") + ":");
+      const found = data.capabilities.filter(c => c.runtime === runtime);
+      lines.push(...(found.length ? found.map(c => "• " + c.id + " (" + c.kind + ")" + (c.skills?.length ? " · skills: " + c.skills.join(", ") : "") + (c.mcpServers?.length ? " · MCP: " + c.mcpServers.join(", ") : "") + (c.scope === "project" ? " · project only" : "")) : ["None found"]));
+    }
+    $("pluginList").textContent = lines.join("\\n");
+  } catch (e) { $("pluginList").textContent = "Could not load plugins: " + e.message; }
+}
+$("refreshPlugins").addEventListener("click", loadPlugins);
+for (const [formId, fieldId, kind] of [["marketplaceForm", "marketplace", "marketplace"], ["pluginForm", "plugin", "plugin"]]) {
+  $(formId).addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const button = $(formId).querySelector("button");
+    button.disabled = true; status("Installing…");
+    try {
+      const result = await pluginApi("POST", { kind, value: $(fieldId).value.trim() });
+      status(kind === "marketplace" ? "Marketplace added: " + result.marketplaceName : "Plugin installed: " + result.pluginId, "ok");
+      $(fieldId).value = "";
+      await loadPlugins();
+    } catch (err) { status(err.message, "err"); }
+    finally { button.disabled = false; }
+  });
+}
 load();
+loadPlugins();
 </script>
 </body>
 </html>`;

@@ -19,6 +19,7 @@ It works in DMs and group iMessages. The bridge, agent, browser session, sandbox
 - Work with Gmail, Calendar, and other connected apps
 - Run code in isolated local sandboxes
 - Hand coding tasks to Claude Code or Codex on your Mac
+- Discover Codex and Claude Code capabilities; install Codex plugins in Bruh Admin
 - Create images and send files back through iMessage
 - Keep context from the chat or reply thread
 - Restrict group access to you, an allowlist, or everyone
@@ -37,7 +38,7 @@ Required:
 Optional:
 
 - [Google Chrome](https://www.google.com/chrome/) for signed-in browser use
-- [Claude Code](https://docs.anthropic.com/en/docs/claude-code/getting-started) or [Codex](https://developers.openai.com/codex/cli/) for coding tasks
+- [Claude Code](https://docs.anthropic.com/en/docs/claude-code/getting-started) or [Codex CLI](https://developers.openai.com/codex/cli/) for coding tasks, installed skills, plugins, and MCP servers
 - [Composio](https://composio.dev/) for Gmail, Calendar, and other app connections
 
 > Claude Pro/Max can authenticate Claude Code for delegated coding tasks. Eve currently supports a ChatGPT subscription as its local main-model connection; using Claude as the main model requires an Anthropic API key or Gateway model.
@@ -150,6 +151,14 @@ pnpm services:logs agent
 
 Fresh installs default to the ChatGPT subscription path. Existing installs created before this option keep their Gateway model until changed in the admin page.
 
+## Plugins and capabilities
+
+Open [Bruh Admin](http://localhost:2000/admin) and use **Capabilities & plugins**. It discovers enabled plugins, skills, and MCP servers from your existing Codex and Claude Code setups. Click **Refresh capabilities** to see new installs. Bruh checks the live inventory before use and starts a fresh local CLI session for each request, so no Bruh rebuild or restart is needed. A plugin's own login or account setup may still be required.
+
+To add a Codex plugin there, enter a trusted GitHub marketplace (`owner/repo`), then install `name@marketplace`. It installs into your Mac's regular `~/.codex` profile. Plugins can access local files or connected services, so choose sources you trust.
+
+For StarCraft II coaching, add `tomkit/sc2-mcp`, then install `sc2-coach@starcraft2-ai`. Ask `/bruh analyze my last SC2 game`. The SC2 server may first ask you to connect your StarCraft2.ai account. Uploading and reading reports are free; creating a new AI Coach report costs one mineral and requires your confirmation.
+
 ## How it works
 
 ```text
@@ -164,6 +173,7 @@ Eve agent ─── model + tools + per-chat session
    ├── signed-in Chrome profile
    ├── isolated Linux sandbox
    ├── Claude Code / Codex
+   ├── installed Codex / Claude Code capabilities
    └── connected apps
    │
    ▼
