@@ -162,8 +162,8 @@ const PAGE = /* html */ `<!doctype html>
 
     <section>
       <h2>Models</h2>
-      <div class="row"><div><label for="modelProvider">Main model connection</label><div class="help">Use your ChatGPT subscription by default, or bring an API-backed provider.</div></div>
-        <select id="modelProvider" name="modelProvider"><option value="chatgpt">ChatGPT subscription (Codex)</option><option value="gateway">Vercel AI Gateway</option><option value="anthropic">Anthropic API</option></select></div>
+      <div class="row"><div><label for="modelProvider">Main model connection</label><div class="help">One Eve tool loop; choose where its model calls go. ChatGPT uses the Codex login. API routers use their own keys.</div></div>
+        <select id="modelProvider" name="modelProvider"><option value="chatgpt">ChatGPT subscription (Codex login)</option><option value="anthropic">Anthropic API</option><option value="openrouter">OpenRouter API</option><option value="gateway">Vercel AI Gateway</option></select></div>
       <div class="row"><div><label for="model">Agent model</label><div class="help">Model slug for the selected connection.</div></div>
         <input type="text" id="model" name="model" list="models" required></div>
       <div class="row"><div><label for="imageModel">Default image model</label><div class="help">Used unless a request asks for a specific one.</div></div>
@@ -198,7 +198,7 @@ const PAGE = /* html */ `<!doctype html>
     <button type="button" id="refreshPlugins">Refresh capabilities</button>
     <div class="plugin-list" id="pluginList">Loading capabilities…</div>
   </section>
-  <datalist id="models"><option value="gpt-6-luna-fast"><option value="gpt-5.6-codex"><option value="claude-sonnet-5"><option value="claude-opus-5.5"><option value="zai/glm-5.3"><option value="anthropic/claude-sonnet-5"></datalist>
+  <datalist id="models"><option value="gpt-5.6-sol"><option value="gpt-6-sol"><option value="claude-sonnet-5"><option value="claude-opus-5.5"><option value="openrouter/auto"><option value="zai/glm-5.3"><option value="anthropic/claude-sonnet-5"></datalist>
   <datalist id="vision"><option value="google/gemini-3.8-flash"><option value="google/gemini-3.5-flash"><option value="zai/glm-5v-turbo"></datalist>
 </main>
 <div class="bar"><div><span id="status" role="status"></span>
@@ -254,6 +254,8 @@ $("form").addEventListener("submit", async (e) => {
   finally { $("save").disabled = false; }
 });
 $("revert").addEventListener("click", load);
+const modelDefaults = { chatgpt: "gpt-5.6-sol", anthropic: "claude-sonnet-5", openrouter: "openrouter/auto", gateway: "anthropic/claude-sonnet-5" };
+$("modelProvider").addEventListener("change", () => { $("model").value = modelDefaults[$("modelProvider").value]; });
 async function loadPlugins() {
   try {
     const data = await pluginApi("GET");

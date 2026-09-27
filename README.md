@@ -33,7 +33,7 @@ Required:
 - An Apple silicon Mac for the bundled local sandbox runtime
 - A model connection:
   - **Default:** a ChatGPT subscription, connected through Codex/Eve
-  - **Optional:** Vercel AI Gateway or an Anthropic API key
+  - **Optional:** Vercel AI Gateway, OpenRouter API, or an Anthropic API key
 
 Optional:
 
@@ -88,7 +88,7 @@ pnpm dev
 
 Type `/login`, choose **ChatGPT subscription**, and complete the browser sign-in. If Codex is installed, Eve uses `codex app-server` and Codex keeps ownership of the credentials.
 
-To use Vercel AI Gateway or Anthropic API instead, put the relevant key in `.env` and select that connection later in the admin page.
+To use Vercel AI Gateway, OpenRouter API, or Anthropic API instead, put the relevant key in `.env` and select that connection later in the admin page.
 
 ![Model login](docs/assets/setup/03-model-login.png)
 
@@ -148,8 +148,13 @@ pnpm services:logs agent
 | Claude Code Pro/Max | No | Yes | Claude Code |
 | Vercel AI Gateway | Yes | — | `.env` or linked Vercel project |
 | Anthropic API | Yes | — | `.env` |
+| OpenRouter API | Yes | — | `.env` |
 
 Fresh installs default to the ChatGPT subscription path. Existing installs created before this option keep their Gateway model until changed in the admin page.
+
+Bruh's main assistant runs in Eve, which owns the iMessage session and tools. The **ChatGPT subscription** choice uses the existing Codex login to authenticate Eve's model calls; it does not run the Codex agent. **Anthropic API**, **OpenRouter API**, and **Vercel AI Gateway** are API-backed model routes in the same Eve tool loop. OpenRouter uses its own key and credits; it does not spend a Claude Code or Codex subscription. [Omnigent](https://omnigent.ai/docs/build/harnesses/supported) takes a different approach: it routes whole Claude Code and Codex *harnesses*, with each harness running its own agent and tools.
+
+Claude Code Pro/Max is a login for the Claude Code agent, not an Anthropic API credential. Bruh can delegate work to that agent today. To use Claude as Eve's main model while keeping Eve's tools, choose **Anthropic API** or an API router. Running the whole iMessage conversation in Claude Code would be a separate harness mode with its own tool integration.
 
 ## Plugins and capabilities
 

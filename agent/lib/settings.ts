@@ -20,8 +20,8 @@ export const settingsSchema = z.object({
   timeoutMinutes: z.number().int().min(1).max(120).default(30),
 
   // Models
-  modelProvider: z.enum(["chatgpt", "gateway", "anthropic"]).default("chatgpt"),
-  model: z.string().trim().min(3).default("gpt-6-luna-fast"),
+  modelProvider: z.enum(["chatgpt", "gateway", "anthropic", "openrouter"]).default("chatgpt"),
+  model: z.string().trim().min(3).default("gpt-5.6-sol"),
   imageModel: z.enum(["gemini", "gpt"]).default("gemini"),
   visionModel: z.string().trim().min(3).default("google/gemini-3.8-flash"),
 
