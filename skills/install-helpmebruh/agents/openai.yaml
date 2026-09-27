@@ -1,0 +1,4 @@
+interface:
+  display_name: "Install Help Me Bruh"
+  short_description: "Install and verify the iMessage assistant on a Mac."
+  default_prompt: "Install Help Me Bruh on this Mac and stop for the required manual permissions and sign-ins."

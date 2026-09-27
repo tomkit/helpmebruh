@@ -1,0 +1,207 @@
+// Local admin page for the owner: http://localhost:2000/admin
+// The server only listens on 127.0.0.1. On top of that, requests must be
+// addressed to localhost (blocks DNS rebinding), and the settings API requires
+// a custom header plus a same-origin Origin, which other websites can't send
+// without a CORS preflight this server never approves. Fails closed.
+import { defineChannel, GET, PUT } from "eve/channels";
+
+import { getSettings, saveSettings } from "../lib/settings";
+
+const LOCAL_HOSTS = new Set(["localhost", "127.0.0.1", "[::1]"]);
+
+function isLocal(request: Request) {
+  const host = request.headers.get("host") ?? "";
+  return LOCAL_HOSTS.has(host.replace(/:\d+$/, ""));
+}
+
+function isApiCall(request: Request) {
+  if (!isLocal(request) || request.headers.get("x-admin-request") !== "1") return false;
+  const origin = request.headers.get("origin");
+  return !origin || LOCAL_HOSTS.has(new URL(origin).hostname);
+}
+
+const forbidden = () => new Response("Forbidden", { status: 403 });
+
+export default defineChannel({
+  routes: [
+    GET("/admin", async (request) => {
+      if (!isLocal(request)) return forbidden();
+      return new Response(PAGE, {
+        headers: {
+          "content-type": "text/html; charset=utf-8",
+          "content-security-policy": "default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; connect-src 'self'; frame-ancestors 'none'",
+          "cache-control": "no-store",
+        },
+      });
+    }),
+
+    GET("/admin/api/settings", async (request) => {
+      if (!isApiCall(request)) return forbidden();
+      return Response.json(getSettings());
+    }),
+
+    PUT("/admin/api/settings", async (request) => {
+      if (!isApiCall(request)) return forbidden();
+      try {
+        return Response.json(saveSettings(await request.json()));
+      } catch (err) {
+        return Response.json({ error: err instanceof Error ? err.message : String(err) }, { status: 400 });
+      }
+    }),
+  ],
+});
+
+const PAGE = /* html */ `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bruh Admin</title>
+<style>
+  :root {
+    --bg: #f6f6f4; --card: #ffffff; --text: #1d1d1f; --muted: #6e6e73; --line: #e3e3e0;
+    --accent: #0a66ff; --accent-text: #ffffff; --ok: #1f8f4e; --err: #c2261d; --field: #fbfbfa;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #141415; --card: #1e1e20; --text: #f2f2f3; --muted: #a0a0a6; --line: #2e2e31;
+      --accent: #4d8dff; --accent-text: #0b0b0c; --ok: #4cc27d; --err: #ff6b62; --field: #252528;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+    font: 15px/1.45 -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif; }
+  main { max-width: 760px; margin: 0 auto; padding: 32px 16px 96px; }
+  header { display: flex; align-items: baseline; gap: 12px; margin-bottom: 4px; }
+  h1 { font-size: 26px; margin: 0; letter-spacing: -0.01em; }
+  .lede { color: var(--muted); margin: 0 0 24px; }
+  section { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 4px 20px; margin-bottom: 16px; }
+  h2 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin: 18px 0 6px; }
+  .row { display: grid; grid-template-columns: 1fr minmax(0, 280px); gap: 16px; align-items: center;
+    padding: 14px 0; border-top: 1px solid var(--line); }
+  h2 + .row { border-top: none; }
+  .row label { font-weight: 600; display: block; }
+  .row .help { color: var(--muted); font-size: 13px; margin-top: 2px; }
+  input[type=text], input[type=number], select, textarea {
+    width: 100%; font: inherit; color: var(--text); background: var(--field);
+    border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; }
+  textarea { min-height: 72px; resize: vertical; }
+  input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .switch { justify-self: end; width: 44px; height: 26px; accent-color: var(--accent); }
+  .bar { position: fixed; left: 0; right: 0; bottom: 0; background: var(--card); border-top: 1px solid var(--line); }
+  .bar div { max-width: 760px; margin: 0 auto; padding: 12px 16px; display: flex; gap: 12px; align-items: center; justify-content: flex-end; }
+  #status { margin-right: auto; color: var(--muted); font-size: 14px; }
+  #status.ok { color: var(--ok); } #status.err { color: var(--err); }
+  button { font: inherit; font-weight: 600; border-radius: 8px; padding: 9px 18px; cursor: pointer;
+    border: 1px solid var(--line); background: var(--field); color: var(--text); }
+  button.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-text); }
+  button:disabled { opacity: 0.5; cursor: default; }
+  @media (max-width: 560px) { .row { grid-template-columns: 1fr; gap: 8px; } .switch { justify-self: start; } }
+</style>
+</head>
+<body>
+<main>
+  <header><h1>Bruh Admin</h1></header>
+  <p class="lede">Settings for your iMessage agent. Changes apply to the next message; no restart needed.</p>
+  <form id="form" autocomplete="off">
+    <section>
+      <h2>Messaging</h2>
+      <div class="row"><div><label for="trigger">Trigger</label><div class="help">Messages starting with this go to the agent.</div></div>
+        <input type="text" id="trigger" name="trigger" required maxlength="20"></div>
+      <div class="row"><div><label for="replyPrefix">Reply prefix</label><div class="help">Starts every agent reply, so replies never re-trigger it.</div></div>
+        <input type="text" id="replyPrefix" name="replyPrefix" required maxlength="8"></div>
+      <div class="row"><div><label for="ack">Instant acknowledgement</label><div class="help">Send the reply prefix on its own as soon as a message arrives.</div></div>
+        <input type="checkbox" class="switch" id="ack" name="ack"></div>
+      <div class="row"><div><label for="updateAfterMinutes">Still-working nudge (minutes)</label><div class="help">If a request is still running after this long, send the reply prefix again. 0 turns it off.</div></div>
+        <input type="number" id="updateAfterMinutes" name="updateAfterMinutes" min="0" max="30" step="0.5"></div>
+      <div class="row"><div><label for="groupAccess">Who can trigger it in group chats</label><div class="help">Besides you. "Everyone" lets anyone in a group you're in use it (and spend on your models). Your accounts and coding agents stay owner-only either way.</div></div>
+        <select id="groupAccess" name="groupAccess"><option value="owner">Only me</option><option value="allowlist">Me + allowed list</option><option value="everyone">Everyone in the group</option></select></div>
+      <div class="row"><div><label for="allowedSenders">Allowed list</label><div class="help">Phone numbers or emails, one per line. They can use it in direct messages, and in groups when group access is "Me + allowed list".</div></div>
+        <textarea id="allowedSenders" name="allowedSenders" placeholder="+15551234567"></textarea></div>
+      <div class="row"><div><label for="historyMessages">Recent messages it sees</label><div class="help">How many earlier messages in the chat come with each request.</div></div>
+        <input type="number" id="historyMessages" name="historyMessages" min="0" max="50"></div>
+      <div class="row"><div><label for="replyThreadContext">Reply-thread context</label><div class="help">When you reply to a message, include that message and its thread (with photos).</div></div>
+        <input type="checkbox" class="switch" id="replyThreadContext" name="replyThreadContext"></div>
+      <div class="row"><div><label for="timeoutMinutes">Give up after (minutes)</label><div class="help">Longer requests end with a failure message in the chat.</div></div>
+        <input type="number" id="timeoutMinutes" name="timeoutMinutes" min="1" max="120"></div>
+    </section>
+
+    <section>
+      <h2>Models</h2>
+      <div class="row"><div><label for="modelProvider">Main model connection</label><div class="help">Use your ChatGPT subscription by default, or bring an API-backed provider.</div></div>
+        <select id="modelProvider" name="modelProvider"><option value="chatgpt">ChatGPT subscription (Codex)</option><option value="gateway">Vercel AI Gateway</option><option value="anthropic">Anthropic API</option></select></div>
+      <div class="row"><div><label for="model">Agent model</label><div class="help">Model slug for the selected connection.</div></div>
+        <input type="text" id="model" name="model" list="models" required></div>
+      <div class="row"><div><label for="imageModel">Default image model</label><div class="help">Used unless a request asks for a specific one.</div></div>
+        <select id="imageModel" name="imageModel"><option value="gemini">Gemini (Nano Banana 2)</option><option value="gpt">GPT Image 2.5</option></select></div>
+      <div class="row"><div><label for="visionModel">Vision model</label><div class="help">Looks at photos for the agent.</div></div>
+        <input type="text" id="visionModel" name="visionModel" list="vision" required></div>
+    </section>
+
+    <section>
+      <h2>Tools</h2>
+      <div class="row"><div><label for="browserProfile">Chrome profile</label><div class="help">Dedicated profile name used for signed-in browser tasks. Find it at chrome://version under Profile Path.</div></div>
+        <input type="text" id="browserProfile" name="browserProfile" required placeholder="Default"></div>
+      <div class="row"><div><label for="sandboxInternet">Sandbox internet access</label><div class="help">Lets code in the agent's Linux VM reach the internet. Applies to newly created sandboxes.</div></div>
+        <input type="checkbox" class="switch" id="sandboxInternet" name="sandboxInternet"></div>
+      <div class="row"><div><label for="codingEnabled">Coding agents</label><div class="help">Let the agent hand tasks to Claude Code or Codex on this Mac (owner only, sandboxed to one project folder).</div></div>
+        <input type="checkbox" class="switch" id="codingEnabled" name="codingEnabled"></div>
+      <div class="row"><div><label for="codingRoot">Projects folder</label><div class="help">Coding agents work in one project folder inside this. The assistant's own project is always off-limits.</div></div>
+        <input type="text" id="codingRoot" name="codingRoot" required></div>
+      <div class="row"><div><label for="codingDefault">Default coding agent</label><div class="help">Used unless a request asks for a specific one.</div></div>
+        <select id="codingDefault" name="codingDefault"><option value="claude">Claude Code</option><option value="codex">Codex</option></select></div>
+    </section>
+  </form>
+  <datalist id="models"><option value="gpt-6-luna-fast"><option value="gpt-5.6-codex"><option value="claude-sonnet-5"><option value="claude-opus-5.5"><option value="zai/glm-5.3"><option value="anthropic/claude-sonnet-5"></datalist>
+  <datalist id="vision"><option value="google/gemini-3.8-flash"><option value="google/gemini-3.5-flash"><option value="zai/glm-5v-turbo"></datalist>
+</main>
+<div class="bar"><div><span id="status" role="status"></span>
+  <button type="button" id="revert">Revert</button>
+  <button type="submit" form="form" class="primary" id="save">Save</button></div></div>
+<script>
+const $ = (id) => document.getElementById(id);
+const api = (method, body) => fetch("/admin/api/settings", {
+  method, headers: { "x-admin-request": "1", "content-type": "application/json" },
+  body: body && JSON.stringify(body),
+}).then(async (r) => { const j = await r.json().catch(() => ({})); if (!r.ok) throw new Error(j.error || r.statusText); return j; });
+
+function status(text, kind) { const s = $("status"); s.textContent = text; s.className = kind || ""; }
+
+function fill(s) {
+  for (const k of ["trigger", "replyPrefix", "historyMessages", "timeoutMinutes", "modelProvider", "model", "imageModel", "visionModel", "groupAccess", "updateAfterMinutes", "browserProfile"]) $(k).value = s[k];
+  for (const k of ["ack", "replyThreadContext", "sandboxInternet"]) $(k).checked = s[k];
+  $("allowedSenders").value = s.allowedSenders.join("\\n");
+  $("codingEnabled").checked = s.codingAgent.enabled;
+  $("codingRoot").value = s.codingAgent.root;
+  $("codingDefault").value = s.codingAgent.defaultAgent;
+}
+
+function read() {
+  return {
+    trigger: $("trigger").value, replyPrefix: $("replyPrefix").value, ack: $("ack").checked,
+    allowedSenders: $("allowedSenders").value.split(/[\\n,]/).map((s) => s.trim()).filter(Boolean),
+    groupAccess: $("groupAccess").value, updateAfterMinutes: Number($("updateAfterMinutes").value),
+    historyMessages: Number($("historyMessages").value), replyThreadContext: $("replyThreadContext").checked,
+    timeoutMinutes: Number($("timeoutMinutes").value),
+    modelProvider: $("modelProvider").value, model: $("model").value, imageModel: $("imageModel").value, visionModel: $("visionModel").value,
+    sandboxInternet: $("sandboxInternet").checked, browserProfile: $("browserProfile").value,
+    codingAgent: { enabled: $("codingEnabled").checked, root: $("codingRoot").value, defaultAgent: $("codingDefault").value },
+  };
+}
+
+async function load() {
+  try { fill(await api("GET")); status(""); } catch (e) { status("Couldn't load settings: " + e.message, "err"); }
+}
+
+$("form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  $("save").disabled = true; status("Saving…");
+  try { fill(await api("PUT", read())); status("Saved. Applies to the next message.", "ok"); }
+  catch (err) { status(err.message, "err"); }
+  finally { $("save").disabled = false; }
+});
+$("revert").addEventListener("click", load);
+load();
+</script>
+</body>
+</html>`;

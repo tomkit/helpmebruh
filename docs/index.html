@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Help Me Bruh is an open-source personal assistant that lives in iMessage and runs on your Mac.">
+  <meta name="theme-color" content="#f4f0e8">
+  <title>Help Me Bruh — text your Mac</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="noise" aria-hidden="true"></div>
+  <header class="nav shell">
+    <a class="brand" href="#top" aria-label="Help Me Bruh home"><span>/</span>bruh</a>
+    <nav aria-label="Main navigation">
+      <a href="#how">How it works</a>
+      <a href="#inside">What’s inside</a>
+      <a class="button button-small" href="https://github.com/tomkit/helpmebruh">GitHub <span aria-hidden="true">↗</span></a>
+    </nav>
+  </header>
+
+  <main id="top">
+    <section class="hero shell">
+      <div class="eyebrow"><span class="pulse"></span> Open source · runs on your Mac</div>
+      <h1>Text your Mac.<br><em>It handles the rest.</em></h1>
+      <p class="hero-copy">An open-source instinct for your Mac mini. Message <strong>/bruh</strong> from any iMessage conversation and put the computer you already own to work.</p>
+      <div class="hero-actions">
+        <a class="button" href="https://github.com/tomkit/helpmebruh#quick-start">Install on your Mac</a>
+        <button class="copy-command" data-copy="git clone https://github.com/tomkit/helpmebruh.git" aria-label="Copy install command">
+          <code>git clone github.com/tomkit/helpmebruh</code><span>Copy</span>
+        </button>
+      </div>
+
+      <div class="hero-stage" aria-label="Example iMessage conversation">
+        <div class="message-window">
+          <div class="message-bar">
+            <span class="back">‹</span>
+            <div class="avatar">B</div>
+            <div><strong>Bruh</strong><small>iMessage</small></div>
+            <span class="info">ⓘ</span>
+          </div>
+          <div class="messages">
+            <div class="stamp">Today 9:41 AM</div>
+            <div class="bubble sent">/bruh find a table for 4 near Dolores Park Friday at 7</div>
+            <div class="typing" aria-label="Bruh is working"><i></i><i></i><i></i></div>
+            <div class="bubble received">Flour + Water has 7:15. It’s a 12-minute walk. Want me to book it?</div>
+            <div class="bubble sent short">yes</div>
+            <div class="bubble received">I’m ready to book for 4 at 7:15. Reply “confirm” and I’ll finish it.</div>
+          </div>
+        </div>
+        <div class="orbit orbit-one">Browser use</div>
+        <div class="orbit orbit-two">Group chats</div>
+        <div class="orbit orbit-three">Your accounts</div>
+      </div>
+    </section>
+
+    <section class="marquee" aria-label="Capabilities">
+      <div>SEARCH THE WEB <b>✦</b> READ YOUR CALENDAR <b>✦</b> USE CHROME <b>✦</b> WRITE CODE <b>✦</b> SEND FILES <b>✦</b> WORK IN GROUP CHATS <b>✦</b></div>
+      <div aria-hidden="true">SEARCH THE WEB <b>✦</b> READ YOUR CALENDAR <b>✦</b> USE CHROME <b>✦</b> WRITE CODE <b>✦</b> SEND FILES <b>✦</b> WORK IN GROUP CHATS <b>✦</b></div>
+    </section>
+
+    <section class="manifesto shell">
+      <p class="kicker">The premise</p>
+      <h2>Your Mac is already signed in,<br>always on, and capable.</h2>
+      <p>Help Me Bruh connects that machine to the place people already reach you: iMessage. No new app. No second phone number. No black-box service holding the keys.</p>
+    </section>
+
+    <section class="feature-grid shell" id="inside">
+      <article class="feature feature-dark">
+        <span class="index">01</span>
+        <div class="feature-icon">⌘</div>
+        <h3>Your computer.<br>Your capabilities.</h3>
+        <p>Use a signed-in Chrome profile, connected apps, local sandboxes, Claude Code, Codex, and the files your agent creates.</p>
+      </article>
+      <article class="feature feature-coral">
+        <span class="index">02</span>
+        <div class="thread-art" aria-hidden="true"><i></i><i></i><i></i></div>
+        <h3>Actually works<br>in group chats.</h3>
+        <p>Invoke it with <strong>/bruh</strong>. Choose whether groups are owner-only, allowlisted, or open to everyone in the thread.</p>
+      </article>
+      <article class="feature feature-cream">
+        <span class="index">03</span>
+        <div class="lock-art" aria-hidden="true">⌂</div>
+        <h3>Local by default.<br>Open by design.</h3>
+        <p>The bridge runs as a LaunchAgent on your Mac. Read the code, change the tools, or remove it completely.</p>
+      </article>
+    </section>
+
+    <section class="how shell" id="how">
+      <div class="how-heading">
+        <p class="kicker">Up and running</p>
+        <h2>One Mac.<br>Four steps.</h2>
+      </div>
+      <ol class="steps">
+        <li><span>1</span><div><strong>Sign in</strong><p>Keep Messages signed in on the Mac that will run the assistant.</p></div></li>
+        <li><span>2</span><div><strong>Clone + connect</strong><p>Install dependencies and use your existing ChatGPT/Codex login. API providers stay optional.</p></div></li>
+        <li><span>3</span><div><strong>Grant access</strong><p>Give Node Full Disk Access so it can read the local Messages database.</p></div></li>
+        <li><span>4</span><div><strong>Text /bruh</strong><p>The LaunchAgent starts at login and replies from your existing iMessage account.</p></div></li>
+      </ol>
+    </section>
+
+    <section class="compare shell">
+      <div>
+        <p class="kicker">Not another hosted bot</p>
+        <h2>Instinct,<br>without the walls.</h2>
+      </div>
+      <div class="compare-table" role="table" aria-label="Help Me Bruh features">
+        <div role="row"><span role="cell">Open source</span><b role="cell">Yes</b></div>
+        <div role="row"><span role="cell">Uses your iMessage account</span><b role="cell">Yes</b></div>
+        <div role="row"><span role="cell">Group iMessages</span><b role="cell">Yes</b></div>
+        <div role="row"><span role="cell">Local Claude Code / Codex</span><b role="cell">Yes</b></div>
+        <div role="row"><span role="cell">Computer + browser use</span><b role="cell">Yes</b></div>
+      </div>
+    </section>
+
+    <section class="cta shell">
+      <p class="kicker">Your Mac is waiting</p>
+      <h2>Give it a text.</h2>
+      <a class="button button-light" href="https://github.com/tomkit/helpmebruh">Get Help Me Bruh on GitHub <span aria-hidden="true">↗</span></a>
+      <div class="cta-command"><code>pnpm services:install</code></div>
+    </section>
+  </main>
+
+  <footer class="shell">
+    <a class="brand" href="#top"><span>/</span>bruh</a>
+    <p>Open-source instinct for your Mac mini.</p>
+    <div><a href="https://github.com/tomkit/helpmebruh">GitHub</a><a href="https://github.com/tomkit/helpmebruh/blob/main/LICENSE">MIT License</a></div>
+  </footer>
+  <script src="app.js"></script>
+</body>
+</html>
