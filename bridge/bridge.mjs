@@ -430,9 +430,14 @@ async function handle(msg, prompt) {
     }
     await converse(msg, prompt);
   } catch (err) {
-    logError(`Failed [${msg.chatGuid}]:`, err.message);
+    // Workflow step failures wrap the real error ("Step … failed after 3
+    // retries: <cause>") and the cause can have an empty message; name it.
+    const causes = [];
+    for (let c = err.cause, i = 0; c && i < 3; c = c.cause, i++) causes.push(c.name && c.name !== 'Error' ? `${c.name}: ${c.message || '(no message)'}` : c.message || '(no message)');
+    const detail = [err.message, ...causes].filter(Boolean).join(' ← ');
+    logError(`Failed [${msg.chatGuid}]:`, detail, err.stack ?? '');
     try {
-      await say(msg, `⚠️ Sorry, that failed (${err.message}). Try again, or send "${settings().trigger} reset" if I seem stuck.`);
+      await say(msg, `⚠️ Sorry, that failed (${detail}). Try again, or send "${settings().trigger} reset" if I seem stuck.`);
     } catch (sendErr) {
       logError(`Couldn't send failure notice to ${msg.chatGuid}:`, sendErr.message);
     }

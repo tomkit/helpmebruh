@@ -6,6 +6,8 @@ import { z } from "zod";
 import { localMcpServer } from "../lib/plugins";
 import { getSettings } from "../lib/settings";
 
+const MAX_RESULT_CHARS = 24_000;
+
 export default defineTool({
   description:
     "Call a local stdio MCP server inherited from the owner's Codex or Claude Code setup directly from Bruh, without running another model. " +
@@ -39,7 +41,17 @@ export default defineTool({
           return { server: input.server, tools: tools.map(t => ({ name: t.name, description: t.description, inputSchema: t.inputSchema })) };
         }
         const result = await client.callTool({ name: input.tool!, arguments: input.arguments ?? {} });
-        return { server: input.server, tool: input.tool, result };
+        // The text is what the model needs. structuredContent repeats it as
+        // JSON (a 50-game search doubles in size), so it's dropped, and a
+        // very long answer is capped to keep the turn inside the context window.
+        const content = Array.isArray(result.content) ? result.content : [];
+        const text = content.map(c => (c && typeof c === "object" && "text" in c ? String(c.text) : "")).join("\n");
+        return {
+          server: input.server,
+          tool: input.tool,
+          isError: result.isError === true,
+          text: text.length > MAX_RESULT_CHARS ? `${text.slice(0, MAX_RESULT_CHARS)}\n[…cut at ${MAX_RESULT_CHARS} characters]` : text,
+        };
       })();
       return await Promise.race([work, new Promise<never>((_, reject) => { timer = setTimeout(() => reject(new Error("MCP server timed out.")), 120_000); })]);
     } finally {
