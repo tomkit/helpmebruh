@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="How Help Me Bruh handles your data: it runs on your own Mac, and your messages and accounts stay there.">
+  <meta name="theme-color" content="#080d15">
+  <title>Privacy Policy · Help Me Bruh</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/legal.css">
+</head>
+<body>
+  <header class="nav">
+    <a class="wordmark" href="/">HELP ME BRUH <span>/MM01</span></a>
+    <nav aria-label="Main navigation"><a class="nav-back" href="/">← Home</a></nav>
+  </header>
+  <main class="legal">
+    <p class="eyebrow">Legal</p>
+    <h1>Privacy Policy</h1>
+    <p class="updated">Effective October 6, 2026</p>
+    <p class="summary">Help Me Bruh is open-source software you run on your own Mac. We don't operate a server that receives your messages, email, calendar, or passwords. They stay on your Mac, except when the software sends them to services you choose to connect.</p>
+
+    <h2>Who this covers</h2>
+    <p>This policy covers the Help Me Bruh software ("Bruh"), this website, and the optional Google sign-in used to connect Gmail and Google Calendar. It is published by the Help Me Bruh project ("we"). If you run Bruh, you are the operator of your own copy.</p>
+
+    <h2>What Bruh reads on your Mac</h2>
+    <ul>
+      <li><strong>iMessages.</strong> Bruh reads messages that start with your trigger word (for example <code>/bruh</code>), plus a few earlier messages from the same chat for context, from the Messages database on your Mac.</li>
+      <li><strong>Attachments.</strong> Photos and voice notes sent with a request, so it can describe or transcribe them.</li>
+      <li><strong>Settings and history.</strong> Your settings, connected-app status, and a log of recent requests, stored in the Bruh folder on your Mac.</li>
+    </ul>
+
+    <h2>What leaves your Mac</h2>
+    <p>Bruh sends data only to services you connect, and only to do what you asked:</p>
+    <ul>
+      <li><strong>AI model providers</strong> you choose (for example OpenAI through Codex, Vercel AI Gateway, OpenRouter, Google Gemini, or ElevenLabs) receive the request text, recent chat context, and any images or audio needed to answer.</li>
+      <li><strong>Connected apps</strong> such as Google, Vercel, Netlify, or StarCraft2.ai receive the API requests needed for the task.</li>
+      <li><strong>Cloudflare</strong> carries one-use sign-in links and callbacks between your phone and your Mac, if you enable phone handoff. It does not store tokens.</li>
+    </ul>
+    <p>Each of those services handles data under its own privacy policy. We don't receive a copy.</p>
+
+    <h2>Google user data</h2>
+    <p>If you connect Gmail or Google Calendar, Bruh asks Google for read-only access: <code>gmail.readonly</code> to search and read your email, and <code>calendar.readonly</code> to check your calendar and availability. Bruh uses this data only to answer your own requests, for example "am I free tomorrow at 3?" or "any email from Alex?".</p>
+    <ul>
+      <li>Google sign-in tokens are stored in your Mac's Keychain. We never receive them.</li>
+      <li>Google data is not sold, used for advertising, or used to train AI models. A model provider you chose may process it to produce an answer to your request.</li>
+      <li>People don't read your Google data, unless you ask for help with a specific message or it's required for security or by law.</li>
+    </ul>
+    <p>Bruh's use and transfer of information received from Google APIs adheres to the <a href="https://developers.google.com/terms/api-services-user-data-policy">Google API Services User Data Policy</a>, including the Limited Use requirements.</p>
+    <p>You can disconnect Gmail or Calendar at any time in Bruh's settings, which deletes the local token and revokes the grant. You can also remove access at <a href="https://myaccount.google.com/permissions">myaccount.google.com/permissions</a>.</p>
+
+    <h2>Passwords</h2>
+    <p>If you connect a password vault (1Password or Bitwarden), Bruh fills saved logins into its browser on your Mac. Passwords are never shown to the AI model or sent in a message.</p>
+
+    <h2>This website</h2>
+    <p>helpmebruh.com is a static site hosted on GitHub Pages. It uses no cookies or analytics. GitHub may log visits as described in its own privacy statement.</p>
+
+    <h2>Your choices</h2>
+    <p>Bruh's data lives on your Mac, so you control it: change or disconnect services in Bruh's settings, delete the Bruh folder, or uninstall it. Because we don't hold your data, we can't access, export, or delete it for you.</p>
+
+    <h2>Children</h2>
+    <p>Bruh is not intended for children under 13.</p>
+
+    <h2>Changes</h2>
+    <p>We'll post changes on this page and update the effective date.</p>
+
+    <h2>Contact</h2>
+    <p>Questions: open an issue at <a href="https://github.com/tomkit/helpmebruh/issues">github.com/tomkit/helpmebruh</a>.</p>
+  </main>
+  <footer><span>HELP ME BRUH /MM01</span><span><a href="/terms/">Terms</a> · <a href="/privacy/">Privacy</a> · <a href="https://github.com/tomkit/helpmebruh">GitHub</a></span><span>MIT · OPEN SOURCE</span></footer>
+</body>
+</html>

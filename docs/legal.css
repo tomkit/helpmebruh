@@ -1,0 +1,11 @@
+/* Terms and Privacy pages. Shares the landing page's tokens. */
+.legal{max-width:760px;margin:0 auto;padding:72px 24px 110px;line-height:1.65;font-size:16px}
+.legal .eyebrow{font:700 11px var(--mono);letter-spacing:.13em;text-transform:uppercase;color:var(--lime);margin:0 0 14px}
+.legal h1{font:800 clamp(44px,8vw,72px)/.95 var(--display);text-transform:uppercase;letter-spacing:-.01em;margin:0 0 14px}
+.legal .updated{font:700 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 44px}
+.legal .summary{border-left:3px solid var(--lime);padding:2px 0 2px 18px;margin:0 0 44px;color:var(--paper)}
+.legal h2{font:800 24px var(--display);text-transform:uppercase;letter-spacing:.01em;margin:48px 0 10px;padding-top:22px;border-top:1px solid var(--line)}
+.legal p,.legal li{color:#d9d7cd}.legal ul{padding-left:20px}.legal li{margin:6px 0}
+.legal a{color:var(--lime)}.legal code{font-size:.9em}
+.nav .nav-back{color:var(--paper);text-decoration:none}
+@media(max-width:800px){.legal{padding:48px 18px 80px;font-size:15px}.nav{height:58px;padding:0 14px}.nav nav a.nav-back{display:block}}
